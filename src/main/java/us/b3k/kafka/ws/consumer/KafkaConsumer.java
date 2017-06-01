@@ -16,24 +16,30 @@
 
 package us.b3k.kafka.ws.consumer;
 
-import kafka.consumer.ConsumerConfig;
-import kafka.consumer.KafkaStream;
-import kafka.javaapi.consumer.ConsumerConnector;
-import kafka.message.MessageAndMetadata;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import us.b3k.kafka.ws.messages.AbstractMessage;
-import us.b3k.kafka.ws.messages.BinaryMessage;
-import us.b3k.kafka.ws.messages.TextMessage;
-import us.b3k.kafka.ws.transforms.Transform;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.ExecutorService;
 
 import javax.websocket.CloseReason;
 import javax.websocket.RemoteEndpoint.Async;
 import javax.websocket.Session;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.*;
-import java.util.concurrent.ExecutorService;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import kafka.consumer.ConsumerConfig;
+import kafka.consumer.KafkaStream;
+import kafka.javaapi.consumer.ConsumerConnector;
+import kafka.message.MessageAndMetadata;
+import us.b3k.kafka.ws.messages.AbstractMessage;
+import us.b3k.kafka.ws.messages.BinaryMessage;
+import us.b3k.kafka.ws.messages.TextMessage;
+import us.b3k.kafka.ws.transforms.Transform;
 
 public class KafkaConsumer {
     private static Logger LOG = LoggerFactory.getLogger(KafkaConsumer.class);
@@ -78,6 +84,7 @@ public class KafkaConsumer {
             LOG.debug("Adding stream for session {}, topic {}",session.getId(), topic);
             final List<KafkaStream<byte[], byte[]>> streams = consumerMap.get(topic);
             for (KafkaStream<byte[], byte[]> stream : streams) {
+                LOG.debug("Adding stream ...");
                 executorService.submit(new KafkaConsumerTask(stream, remoteEndpoint, transform, session));
             }
         }
@@ -116,9 +123,12 @@ public class KafkaConsumer {
         @SuppressWarnings("unchecked")
         public void run() {
             String subprotocol = session.getNegotiatedSubprotocol();
+            LOG.debug("start block IO");
+
             for (MessageAndMetadata<byte[], byte[]> messageAndMetadata : (Iterable<MessageAndMetadata<byte[], byte[]>>) stream) {
                 String topic = messageAndMetadata.topic();
                 byte[] message = messageAndMetadata.message();
+                // LOG.debug("get topic {}, message {}", topic, new String(message, Charset.forName("UTF-8")));
                 switch(subprotocol) {
                     case "kafka-binary":
                         sendBinary(topic, message);

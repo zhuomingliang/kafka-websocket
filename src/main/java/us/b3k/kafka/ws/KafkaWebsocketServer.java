@@ -16,17 +16,30 @@
 
 package us.b3k.kafka.ws;
 
-import org.eclipse.jetty.server.*;
+import java.io.IOException;
+import java.util.Properties;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.websocket.server.ServerContainer;
+
+import org.eclipse.jetty.server.HttpConfiguration;
+import org.eclipse.jetty.server.HttpConnectionFactory;
+import org.eclipse.jetty.server.SecureRequestCustomizer;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.SslConnectionFactory;
 import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.eclipse.jetty.websocket.jsr356.server.deploy.WebSocketServerContainerInitializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import us.b3k.kafka.ws.consumer.KafkaConsumerFactory;
 import us.b3k.kafka.ws.producer.KafkaWebsocketProducerFactory;
-
-import javax.websocket.server.ServerContainer;
-import java.util.Properties;
 
 public class KafkaWebsocketServer {
     private static Logger LOG = LoggerFactory.getLogger(KafkaWebsocketServer.class);
@@ -118,6 +131,32 @@ public class KafkaWebsocketServer {
             ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
             context.setContextPath("/");
             server.setHandler(context);
+            context.addServlet(new ServletHolder(new HttpServlet() {
+
+				/**
+				 *
+				 */
+				private static final long serialVersionUID = 580039119946385772L;
+
+				@Override
+				protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+			        response.setContentType("text/html");
+			        response.setStatus(HttpServletResponse.SC_OK);
+			        response.getWriter().println("<h1>" + "hello" + "</h1>");
+			        response.getWriter().println("<script>\n"
+			        + "// Create WebSocket connection.\n"
+					+ "const socket = new WebSocket('ws://localhost:7080/v2/broker/?topics=my_topic');\n"
+					+ "socket.addEventListener('open', function (event) {\n"
+					+ "    setInterval(function(){socket.send('{ \"topic\" : \"my_topic\", \"message\" : \"my amazing message\" }')}, 3000);\n"
+					+ "});\n"
+					+ "socket.addEventListener('message', function (event) {\n"
+					+ "    console.log('Message from server', event.data);\n"
+					+ "});\n"
+					+ "</script>");
+			        response.getWriter().println("session=" + request.getSession(true).getId());
+			    }
+
+            }), "/");
 
             ServerContainer wsContainer = WebSocketServerContainerInitializer.configureContext(context);
             String inputTransformClassName =
