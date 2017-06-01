@@ -12,7 +12,7 @@
     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
     See the License for the specific language governing permissions and
     limitations under the License.
-*/
+ */
 
 package us.b3k.kafka.ws;
 
@@ -78,21 +78,21 @@ public class KafkaWebsocketServer {
         sslContextFactory.setIncludeProtocols(protocols);
         sslContextFactory.setIncludeCipherSuites(ciphers);
         switch(clientAuth) {
-            case "required":
-                LOG.info("Client auth required.");
-                sslContextFactory.setNeedClientAuth(true);
-                sslContextFactory.setValidatePeerCerts(true);
-                break;
-            case "optional":
-                LOG.info("Client auth allowed.");
-                sslContextFactory.setWantClientAuth(true);
-                sslContextFactory.setValidatePeerCerts(true);
-                break;
-            default:
-                LOG.info("Client auth disabled.");
-                sslContextFactory.setNeedClientAuth(false);
-                sslContextFactory.setWantClientAuth(false);
-                sslContextFactory.setValidatePeerCerts(false);
+        case "required":
+            LOG.info("Client auth required.");
+            sslContextFactory.setNeedClientAuth(true);
+            sslContextFactory.setValidatePeerCerts(true);
+            break;
+        case "optional":
+            LOG.info("Client auth allowed.");
+            sslContextFactory.setWantClientAuth(true);
+            sslContextFactory.setValidatePeerCerts(true);
+            break;
+        default:
+            LOG.info("Client auth disabled.");
+            sslContextFactory.setNeedClientAuth(false);
+            sslContextFactory.setWantClientAuth(false);
+            sslContextFactory.setValidatePeerCerts(false);
         }
         return sslContextFactory;
     }
@@ -133,28 +133,28 @@ public class KafkaWebsocketServer {
             server.setHandler(context);
             context.addServlet(new ServletHolder(new HttpServlet() {
 
-				/**
-				 *
-				 */
-				private static final long serialVersionUID = 580039119946385772L;
+                /**
+                 *
+                 */
+                private static final long serialVersionUID = 580039119946385772L;
 
-				@Override
-				protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-			        response.setContentType("text/html");
-			        response.setStatus(HttpServletResponse.SC_OK);
-			        response.getWriter().println("<h1>" + "hello" + "</h1>");
-			        response.getWriter().println("<script>\n"
-			        + "// Create WebSocket connection.\n"
-					+ "const socket = new WebSocket('ws://localhost:7080/v2/broker/?topics=my_topic');\n"
-					+ "socket.addEventListener('open', function (event) {\n"
-					+ "    setInterval(function(){socket.send('{ \"topic\" : \"my_topic\", \"message\" : \"my amazing message\" }')}, 3000);\n"
-					+ "});\n"
-					+ "socket.addEventListener('message', function (event) {\n"
-					+ "    console.log('Message from server', event.data);\n"
-					+ "});\n"
-					+ "</script>");
-			        response.getWriter().println("session=" + request.getSession(true).getId());
-			    }
+                @Override
+                protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+                    response.setContentType("text/html");
+                    response.setStatus(HttpServletResponse.SC_OK);
+                    response.getWriter().println("<h1>" + "hello" + "</h1>");
+                    response.getWriter().println("<script>\n"
+                            + "// Create WebSocket connection.\n"
+                            + "const socket = new WebSocket('ws://localhost:7080/v2/broker/?topics=my_topic');\n"
+                            + "socket.addEventListener('open', function (event) {\n"
+                            + "    setInterval(function(){socket.send('{ \"topic\" : \"my_topic\", \"message\" : \"my amazing message\" }')}, 3000);\n"
+                            + "});\n"
+                            + "socket.addEventListener('message', function (event) {\n"
+                            + "    console.log('Message from server', event.data);\n"
+                            + "});\n"
+                            + "</script>");
+                    response.getWriter().println("session=" + request.getSession(true).getId());
+                }
 
             }), "/");
 

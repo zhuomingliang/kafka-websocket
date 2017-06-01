@@ -1,3 +1,6 @@
 .idea
 kafka-websocket.iml
 target
+.classpath
+.project
+.settings/
